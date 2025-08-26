@@ -14,6 +14,9 @@ const PORT = process.env.PORT || 3000;
 // CLOVA Studio v3
 const BASE_URL = 'https://clovastudio.stream.ntruss.com';
 const MODEL = process.env.CLOVA_MODEL || 'HCX-005';
+// CSR (Speech-to-Text)
+const CSR_LANG = process.env.CSR_LANG || 'Kor';
+const CSR_URL = `https://naveropenapi.apigw.ntruss.com/recog/v1/stt?lang=${CSR_LANG}`;
 
 // 이미지 제약: <= 20MB, 긴 변 <= 2240px
 const MAX_LONG_SIDE = 2240;
@@ -22,6 +25,7 @@ const MAX_BYTES = 20 * 1024 * 1024;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.raw({ type: 'audio/wav', limit: MAX_BYTES }));
 
 // 메모리 업로드
 const upload = multer({ storage: multer.memoryStorage() });
@@ -176,6 +180,51 @@ app.post('/analyze', upload.single('image'), async (req, res) => {
       try { await s3.send(new DeleteObjectCommand({ Bucket: process.env.NCP_OS_BUCKET, Key: keyForDelete })); }
       catch (_) {}
     }
+  }
+});
+
+// 음성 인식 + 요약
+app.post('/stt-summarize', async (req, res) => {
+  try {
+    const wavBytes = req.body;
+    if (!wavBytes || !Buffer.isBuffer(wavBytes) || wavBytes.length === 0) {
+      return res.status(400).json({ error: 'wav audio body required (Content-Type: audio/wav)' });
+    }
+
+    // 1) CSR 호출
+    const csrResp = await axios.post(CSR_URL, wavBytes, {
+      headers: {
+        'X-NCP-APIGW-API-KEY-ID': process.env.NCP_CSR_CLIENT_ID,
+        'X-NCP-APIGW-API-KEY': process.env.NCP_CSR_CLIENT_SECRET,
+        'Content-Type': 'application/octet-stream',
+      },
+      timeout: 60000,
+    });
+    const recognizedText = (csrResp.data && csrResp.data.text) || (typeof csrResp.data === 'string' ? csrResp.data : '');
+
+    // 2) HCX-005 요약
+    const summaryPrompt = `아래 한국어 발화를 간결히 요약하고, 핵심 포인트만 2~4줄로 정리하세요.\n\n"""\n${recognizedText}\n"""`;
+    const body = {
+      messages: [
+        { role: 'system', content: [{ type: 'text', text: 'You are a helpful summarizer. Return ONLY plain text without markdown.' }] },
+        { role: 'user', content: [{ type: 'text', text: summaryPrompt }] },
+      ],
+      maxTokens: 400,
+      temperature: 0.3,
+    };
+    const r = await axios.post(`${BASE_URL}/v3/chat-completions/${MODEL}`, body, {
+      headers: { Authorization: `Bearer ${process.env.CLOVA_API_KEY}`, 'Content-Type': 'application/json' },
+      timeout: 30000,
+    });
+    let summary = r.data?.result?.message?.content ?? '';
+    if (Array.isArray(summary)) summary = summary[0]?.text ?? '';
+    if (typeof summary !== 'string') summary = String(summary || '');
+
+    return res.json({ text: recognizedText, summary });
+  } catch (err) {
+    const detail = err?.response?.data || err.message;
+    console.error(detail);
+    return res.status(500).json({ error: 'stt_or_summary_failed', detail });
   }
 });
 
