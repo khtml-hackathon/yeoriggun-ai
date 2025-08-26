@@ -14,16 +14,17 @@ class AudioRecorderService {
     }
 
     final dir = await getTemporaryDirectory();
-    _path = '${dir.path}/rec_${DateTime.now().millisecondsSinceEpoch}.wav';
+    final path = '${dir.path}/rec_${DateTime.now().millisecondsSinceEpoch}.wav';
+    _path = path;
     await _recorder.start(
       const RecordConfig(
         encoder: AudioEncoder.wav,
         sampleRate: 16000,
         numChannels: 1,
       ),
-      path: _path,
+      path: path,
     );
-    return File(_path!);
+    return File(path);
   }
 
   Future<File?> stopRecording() async {
