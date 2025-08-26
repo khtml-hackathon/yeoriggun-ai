@@ -203,7 +203,10 @@ app.post('/stt-summarize', async (req, res) => {
     const recognizedText = (csrResp.data && csrResp.data.text) || (typeof csrResp.data === 'string' ? csrResp.data : '');
 
     // 2) HCX-005 요약
-    const summaryPrompt = `아래 한국어 발화를 간결히 요약하고, 핵심 포인트만 2~4줄로 정리하세요.\n\n"""\n${recognizedText}\n"""`;
+    const summaryPrompt = `당신은 판매 멘트에서 핵심 속성만 구조화하는 정보 추출기다. 다음 한국어 발화를 읽고, 아래 필드로만 출력한다.
+필드: 원산지(배열), 한 망(중량_kg 숫자, 개수 범위 문자열), 보관(상온/냉장: boolean 또는 짧은 설명), 비고(선택).
+오탈자 교정 및 단위·범위 정규화 수행. 추론/추가는 금지, 미기재는 생략. 항상 JSON + 항목 리스트 두 가지 형식으로만 출력.\n\n"""\n${recognizedText}\n"""`;
+
     const body = {
       messages: [
         { role: 'system', content: [{ type: 'text', text: 'You are a helpful summarizer. Return ONLY plain text without markdown.' }] },

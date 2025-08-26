@@ -37,26 +37,24 @@ class ResultScreen extends StatelessWidget {
             const SizedBox(height: 16),
             TextField(
               controller: _product,
-              readOnly: true,
               decoration: const InputDecoration(labelText: '상품이름', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _price,
-              readOnly: true,
+              keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: '가격', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _qty,
-              readOnly: true,
+              keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: '수량', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _summary,
               maxLines: 5,
-              readOnly: true,
               decoration: const InputDecoration(labelText: '요약', border: OutlineInputBorder()),
             ),
           ],
