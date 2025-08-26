@@ -152,7 +152,6 @@ class _AnalyzeScreenState extends State<AnalyzeScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: _productController,
-              readOnly: true,
               decoration: const InputDecoration(
                 labelText: '상품이름',
                 border: OutlineInputBorder(),
@@ -161,7 +160,7 @@ class _AnalyzeScreenState extends State<AnalyzeScreen> {
             const SizedBox(height: 12),
             TextField(
               controller: _priceController,
-              readOnly: true,
+              keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: '가격',
                 border: OutlineInputBorder(),
@@ -170,7 +169,7 @@ class _AnalyzeScreenState extends State<AnalyzeScreen> {
             const SizedBox(height: 12),
             TextField(
               controller: _qtyController,
-              readOnly: true,
+              keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: '수량',
                 border: OutlineInputBorder(),

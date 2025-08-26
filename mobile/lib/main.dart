@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'analyze_screen.dart';
+import 'package:provider/provider.dart';
+import 'state/session_state.dart';
+import 'screens/upload_photo_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,13 +13,16 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Yeoriggun AI',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (_) => SessionState(),
+      child: MaterialApp(
+        title: 'Yeoriggun AI',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+          useMaterial3: true,
+        ),
+        home: const UploadPhotoScreen(apiBase: 'http://localhost:3000'),
       ),
-      home: const AnalyzeScreen(),
     );
   }
 }
