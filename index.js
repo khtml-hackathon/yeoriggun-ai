@@ -203,9 +203,13 @@ app.post('/stt-summarize', async (req, res) => {
     const recognizedText = (csrResp.data && csrResp.data.text) || (typeof csrResp.data === 'string' ? csrResp.data : '');
 
     // 2) HCX-005 요약
-    const summaryPrompt = `당신은 판매 멘트에서 핵심 속성만 구조화하는 정보 추출기다. 다음 한국어 발화를 읽고, 아래 필드로만 출력한다.
-필드: 원산지(배열), 한 망(중량_kg 숫자, 개수 범위 문자열), 보관(상온/냉장: boolean 또는 짧은 설명), 비고(선택).
-오탈자 교정 및 단위·범위 정규화 수행. 추론/추가는 금지, 미기재는 생략. 항상 JSON + 항목 리스트 두 가지 형식으로만 출력.\n\n"""\n${recognizedText}\n"""`;
+    const summaryPrompt = `아래 판매 멘트를 항목형 텍스트로만 출력하세요.
+- 형식 고정, 추가 문장/코드블록 금지
+- 없는 항목은 그 줄 자체를 생략
+출력 형식(예):
+원산지: 미국 캘리포니아, 스페인, 남아공
+한 망: 2kg, 6~10개
+보관: 상온 가능, 장기 보관 시 냉장 권장\n\n"""\n${recognizedText}\n"""`;
 
     const body = {
       messages: [
